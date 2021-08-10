@@ -24,12 +24,14 @@ class DRacer():
         self.time = 0.0
         self.path_segments = _ts
         self.current_path_segment = 0
-        self.previous_turning_radius = 0.0
         self.turning_radius = 0.0
         self.turning_curvature = 0.0
+        self.__previous_centrifugal_acceleration = 0.0
         self.centrifugal_acceleration = 0.0
         self.centrifugal_force = 0.0
+        self.__previous_jerk = 0.0
         self.jerk = 0.0
+        self.snap = 0.0
         self.lean_to_horizon = 0.0 # relative leaning to horizon
         self.lean_to_track = 0.0 # relative leaning to track surface
         self.track_camber = None
@@ -59,7 +61,8 @@ class DRacer():
         else:
             self.speed = self.speed_profile[self.stride_no - 1]
 
-        self.previous_turning_radius = self.turning_radius
+        self.__previous_centrifugal_acceleration = self.centrifugal_acceleration
+        self.__previous_jerk = self.jerk
 
         self.turning_curvature = self.path_segments[self.current_path_segment].curvature_from + (self.path_segments[self.current_path_segment].curvature_rate * self.distance)
         self.turning_radius = 1 / self.turning_curvature
@@ -69,7 +72,11 @@ class DRacer():
 
         if self.stride_no > 1:
 
-            self.jerk = (self.centrifugal_acceleration - ((self.speed**2)/self.previous_turning_radius))/self.stride_duration
+            self.jerk = (self.centrifugal_acceleration - self.__previous_centrifugal_acceleration)/self.stride_duration
+
+        if self.stride_no > 2:
+
+            self.snap = (self.jerk - self.__previous_jerk) / self.stride_duration
 
         self.track_camber = self.path_segments[self.current_path_segment].camber_from + (self.path_segments[self.current_path_segment].camber_rate * self.distance)
 
