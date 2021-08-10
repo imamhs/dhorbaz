@@ -26,6 +26,8 @@ class DRacer():
         self.current_path_segment = 0
         self.turning_radius = 0.0
         self.turning_curvature = 0.0
+        self.yaw_rate = 0.0
+        self.total_yaw = 0.0
         self.__previous_centrifugal_acceleration = 0.0
         self.centrifugal_acceleration = 0.0
         self.centrifugal_force = 0.0
@@ -66,6 +68,9 @@ class DRacer():
 
         self.turning_curvature = self.path_segments[self.current_path_segment].curvature_from + (self.path_segments[self.current_path_segment].curvature_rate * self.distance)
         self.turning_radius = 1 / self.turning_curvature
+        self.yaw_rate = self.speed / self.turning_radius
+
+        self.total_yaw += self.yaw_rate * self.stride_duration
 
         self.centrifugal_acceleration = (self.speed**2)/self.turning_radius
         self.centrifugal_force = self.mass * self.centrifugal_acceleration
