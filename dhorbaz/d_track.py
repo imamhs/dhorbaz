@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2020, Md Imam Hossain (emamhd at gmail dot com)
+# Copyright (c) 2019-2021, Md Imam Hossain (emamhd at gmail dot com)
 # see LICENSE.txt for details
 
 """
@@ -15,5 +15,5 @@ class DTrackSegment():
         self.camber_to = float(_ct)
         self.curvature_from = float(1/_rf)
         self.curvature_to = float(1/_rt)
-        self.camber_rate = (_ct - _cf)/_len
-        self.curvature_rate = (self.curvature_to - self.curvature_from)/_len
+        self.camber_rate = float((_ct - _cf)/_len)
+        self.curvature_rate = float((self.curvature_to - self.curvature_from)/_len)
