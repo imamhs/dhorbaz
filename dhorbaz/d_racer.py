@@ -68,12 +68,13 @@ class DRacer():
         self.__previous_jerk = self.jerk
 
         self.turning_curvature = self.path_segments[self.path_segment_cursor].curvature_from + (self.path_segments[self.path_segment_cursor].curvature_rate * self.distance)
-        self.turning_radius = float(1 / self.turning_curvature)
-        self.yaw_rate = float(self.speed / self.turning_radius)
+        self.yaw_rate = float(self.speed * self.turning_curvature)
+        self.turning_radius = abs(float(1 / self.turning_curvature))
+
 
         self.total_yaw += abs(self.yaw_rate * self.stride_duration)
 
-        self.centrifugal_acceleration = float((self.speed**2)/self.turning_radius)
+        self.centrifugal_acceleration = float((self.speed**2)*self.turning_curvature)
         self.centrifugal_force = float(self.mass * self.centrifugal_acceleration)
 
         if self.stride_no > 1:
