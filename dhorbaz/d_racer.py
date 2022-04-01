@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, Md Imam Hossain (emamhd at gmail dot com)
+# Copyright (c) 2019-2022, Md Imam Hossain (emamhd at gmail dot com)
 # see LICENSE.txt for details
 
 """
@@ -37,7 +37,14 @@ class DRacer():
         self.snap = 0.0
         self.lean_to_horizon = 0.0 # leaning relative to horizon
         self.lean_to_track = 0.0 # leaning relative to track surface
+        self.__previous_track_camber = None
         self.track_camber = None
+        self.track_camber_rate = 0.0
+        self.__previous_track_elevation = None
+        self.track_elevation = None
+        self.track_elevation_rate = 0.0
+        self.track_width = None
+        self.track_camber_elevation = None
 
     def next_stride(self):
 
@@ -71,7 +78,6 @@ class DRacer():
         self.yaw_rate = float(self.speed * self.turning_curvature)
         self.turning_radius = abs(float(1 / self.turning_curvature))
 
-
         self.total_yaw += abs(self.yaw_rate * self.stride_duration)
 
         self.centrifugal_acceleration = float((self.speed**2)*self.turning_curvature)
@@ -85,7 +91,13 @@ class DRacer():
 
             self.snap = float((self.jerk - self.__previous_jerk) / self.stride_duration)
 
+        self.__previous_track_camber = self.track_camber
+
         self.track_camber = self.path_segments[self.path_segment_cursor].camber_from + (self.path_segments[self.path_segment_cursor].camber_rate * self.distance)
+
+        if (self.__previous_track_camber is not None) and (self.track_camber is not None):
+
+            self.track_camber_rate = self.track_camber - self.__previous_track_camber
 
         if self.centrifugal_force == 0.0:
             self.lean_to_horizon = 0.0
@@ -93,5 +105,17 @@ class DRacer():
             self.lean_to_horizon = float(degrees(atan(self.weight / self.centrifugal_force)))
 
         self.lean_to_track = float(self.lean_to_horizon + degrees(atan(self.track_camber/100)))
+
+        self.__previous_track_elevation = self.track_elevation
+
+        self.track_elevation = self.path_segments[self.path_segment_cursor].elevation_from + (self.path_segments[self.path_segment_cursor].elevation_rate * self.distance)
+
+        if (self.track_elevation is not None) and (self.__previous_track_elevation is not None):
+
+            self.track_elevation_rate = self.track_elevation - self.__previous_track_elevation
+
+        self.track_camber_elevation = self.track_elevation + ((self.track_camber / 100) * 1.5)
+
+        self.track_width = self.path_segments[self.path_segment_cursor].width_from + (self.path_segments[self.path_segment_cursor].width_rate * self.distance)
 
         return end_of_track
