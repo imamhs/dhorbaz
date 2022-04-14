@@ -8,14 +8,14 @@ Racing subject object
 from math import atan, degrees
 
 class DRacer():
-    def __init__(self, _sl, _sf, _m, _ts, _sp):
+    def __init__(self, _sv, _m, _ts):
 
-        self.speed_profile = _sp
-        self.speed_profile_len = len(self.speed_profile)
-        self.speed = float(self.speed_profile[0])
-        self.stride_length = float(_sl)
-        self.stride_frequency = float(_sf)
-        self.stride_duration = float(1/self.stride_frequency)
+        self.stride_variables = _sv
+        self.stride_variables_len = len(self.stride_variables)
+        self.stride_frequency = 0.0
+        self.stride_length = 0.0
+        self.instantaneous_speed = 0.0
+        self.stride_duration = 0.0
         self.mass = float(_m)
         self.weight = float(self.mass * 9.81)
         self.distance = 0.0
@@ -35,8 +35,8 @@ class DRacer():
         self.__previous_jerk = 0.0
         self.jerk = 0.0
         self.snap = 0.0
-        self.lean_to_horizon = 0.0 # leaning relative to horizon
-        self.lean_to_track = 0.0 # leaning relative to track surface
+        self.lean_to_horizon = 0.0  # leaning relative to horizon
+        self.lean_to_track = 0.0  # leaning relative to track surface
         self.__previous_track_camber = None
         self.track_camber = None
         self.track_camber_rate = 0.0
@@ -50,11 +50,23 @@ class DRacer():
 
         end_of_track = False
 
+        self.stride_no += 1
+
+        if self.stride_no > self.stride_variables_len:
+            self.stride_frequency = float(self.stride_variables[-1][0])
+            self.stride_length = float(self.stride_variables[-1][1])
+        else:
+            self.stride_frequency = float(self.stride_variables[self.stride_no - 1][0])
+            self.stride_length = float(self.stride_variables[self.stride_no - 1][1])
+
+        self.stride_duration = float(1 / self.stride_frequency)
+
+        self.instantaneous_speed = self.stride_frequency * self.stride_length
+
         # calculation of racer location in the track
 
         self.distance += self.stride_length
         self.distance_travelled += self.stride_length
-        self.stride_no += 1
         self.time += self.stride_duration
 
         if self.distance > self.path_segments[self.path_segment_cursor].length:
@@ -66,21 +78,16 @@ class DRacer():
 
         # calculations of racer dynamic states
 
-        if self.stride_no > self.speed_profile_len:
-            self.speed = self.speed_profile[-1]
-        else:
-            self.speed = self.speed_profile[self.stride_no - 1]
-
         self.__previous_centrifugal_acceleration = self.centrifugal_acceleration
         self.__previous_jerk = self.jerk
 
         self.turning_curvature = self.path_segments[self.path_segment_cursor].curvature_from + (self.path_segments[self.path_segment_cursor].curvature_rate * self.distance)
-        self.yaw_rate = float(self.speed * self.turning_curvature)
+        self.yaw_rate = float(self.instantaneous_speed * self.turning_curvature)
         self.turning_radius = abs(float(1 / self.turning_curvature))
 
         self.total_yaw += abs(self.yaw_rate * self.stride_duration)
 
-        self.centrifugal_acceleration = float((self.speed**2)*self.turning_curvature)
+        self.centrifugal_acceleration = float((self.instantaneous_speed**2)*self.turning_curvature)
         self.centrifugal_force = float(self.mass * self.centrifugal_acceleration)
 
         if self.stride_no > 1:
@@ -110,11 +117,11 @@ class DRacer():
 
         self.track_elevation = self.path_segments[self.path_segment_cursor].elevation_from + (self.path_segments[self.path_segment_cursor].elevation_rate * self.distance)
 
-        if (self.track_elevation is not None) and (self.__previous_track_elevation is not None):
+        if (self.__previous_track_elevation is not None) and (self.track_elevation is not None):
 
             self.track_elevation_rate = self.track_elevation - self.__previous_track_elevation
 
-        self.track_camber_elevation = self.track_elevation + ((self.track_camber / 100) * 1.5)
+        self.track_camber_elevation = self.track_elevation + (self.track_camber / 100)
 
         self.track_width = self.path_segments[self.path_segment_cursor].width_from + (self.path_segments[self.path_segment_cursor].width_rate * self.distance)
 
