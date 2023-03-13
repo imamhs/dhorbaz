@@ -43,7 +43,9 @@ class DRacer():
         self.__previous_track_elevation = None
         self.track_elevation = None
         self.track_elevation_rate = 0.0
+        self.track_elevation_camber = 0.0
         self.track_width = None
+        self.__previous_track_camber_elevation = None
         self.track_camber_elevation = None
 
     def next_stride(self):
@@ -121,7 +123,13 @@ class DRacer():
 
             self.track_elevation_rate = self.track_elevation - self.__previous_track_elevation
 
+        self.__previous_track_camber_elevation = self.track_camber_elevation
+
         self.track_camber_elevation = self.track_elevation + (self.track_camber / 100)
+
+        if (self.__previous_track_camber_elevation is not None) and (self.track_camber_elevation is not None):
+
+            self.track_elevation_camber = ((self.track_camber_elevation - self.__previous_track_camber_elevation)/self.stride_length)*100
 
         self.track_width = self.path_segments[self.path_segment_cursor].width_from + (self.path_segments[self.path_segment_cursor].width_rate * self.distance)
 
