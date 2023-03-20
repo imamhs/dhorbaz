@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2022, Md Imam Hossain (emamhd at gmail dot com)
+# Copyright (c) 2019-2023, Md Imam Hossain (emamhd at gmail dot com)
 # see LICENSE.txt for details
 
 """
@@ -6,6 +6,8 @@ Racing subject object
 """
 
 from math import atan, degrees
+
+EARTH_GRAVITATIONAL_ACCELERATION = 9.80665
 
 class DRacer():
     def __init__(self, _sv, _m, _ts):
@@ -17,7 +19,7 @@ class DRacer():
         self.instantaneous_speed = 0.0
         self.stride_duration = 0.0
         self.mass = float(_m)
-        self.weight = float(self.mass * 9.81)
+        self.weight = float(self.mass * EARTH_GRAVITATIONAL_ACCELERATION)
         self.distance = 0.0
         self.distance_travelled = 0.0
         self.stride_no = 0
@@ -26,7 +28,7 @@ class DRacer():
         self.path_segments_len = len(self.path_segments)
         self.path_segment_cursor = 0
         self.turning_radius = 0.0
-        self.turning_curvature = 0.0
+        self.turning_curvature = None
         self.yaw_rate = 0.0
         self.total_yaw = 0.0
         self.__previous_centrifugal_acceleration = 0.0
@@ -47,6 +49,8 @@ class DRacer():
         self.track_width = None
         self.__previous_track_camber_elevation = None
         self.track_camber_elevation = None
+        self.track_camber_elevation_rate = 0.0
+        self.track_path_offset = None
 
     def next_stride(self):
 
@@ -123,13 +127,16 @@ class DRacer():
 
             self.track_elevation_rate = self.track_elevation - self.__previous_track_elevation
 
+        self.track_path_offset = self.path_segments[self.path_segment_cursor].path_offset_from + (self.path_segments[self.path_segment_cursor].path_offset_rate * self.distance)
+
         self.__previous_track_camber_elevation = self.track_camber_elevation
 
-        self.track_camber_elevation = self.track_elevation + (self.track_camber / 100)
+        self.track_camber_elevation = self.track_elevation + ((self.track_camber / 100)*self.track_path_offset)
 
         if (self.__previous_track_camber_elevation is not None) and (self.track_camber_elevation is not None):
 
             self.track_elevation_camber = ((self.track_camber_elevation - self.__previous_track_camber_elevation)/self.stride_length)*100
+            self.track_camber_elevation_rate = self.track_camber_elevation - self.__previous_track_camber_elevation
 
         self.track_width = self.path_segments[self.path_segment_cursor].width_from + (self.path_segments[self.path_segment_cursor].width_rate * self.distance)
 
