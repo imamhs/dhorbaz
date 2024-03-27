@@ -52,7 +52,7 @@ class DRacer():
         self.track_camber_elevation_rate = 0.0
         self.track_path_offset = None
 
-    def next_stride(self):
+    def next_step(self):
 
         end_of_track = False
 
