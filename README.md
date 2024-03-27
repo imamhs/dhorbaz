@@ -1,9 +1,9 @@
 # Dhorbaz
 
-This is a discrete-event simulator for simulating the dynamic states of a path following object.
+This is a discrete-event simulator helper library for simulating the dynamic states of a path following object.
 
 For usages and applications restrictions please refer to LICENSE.txt
 
 Cheers!
 
-Imam Hossain (emamhd@gmail.com)
+Md Imam Hossain (emamhd@gmail.com)
